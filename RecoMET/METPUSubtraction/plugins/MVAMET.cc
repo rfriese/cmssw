@@ -34,7 +34,8 @@ MVAMET::MVAMET(const edm::ParameterSet& cfg){
   combineNLeptons_ = cfg.getParameter<int>("combineNLeptons");
   requireOS_ = cfg.getParameter<bool>("requireOS");
   // check config: only when exactly two leptons are combined, OS requirement makes sense
-  assert( (requireOS_ == true) || (combineNLeptons_ ==2));
+  if(requireOS_)
+    assert( combineNLeptons_ == 2 );
   useTauSig_    = cfg.getParameter<bool>("useTauSig");
 
   srcVertices_  = consumes<reco::VertexCollection>(cfg.getParameter<edm::InputTag>("srcVertices"));

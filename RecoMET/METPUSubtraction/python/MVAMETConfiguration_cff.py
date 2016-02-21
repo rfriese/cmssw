@@ -199,6 +199,13 @@ def runMVAMET(process,
         setattr(process, "pat"+met,      patMETsForMVA.clone(metSource = cms.InputTag(met)))
         setattr(process, "pat"+met+"T1", patMETsForMVA.clone(metSource = cms.InputTag(met+"T1")))
 
+    process.pfChs = cms.EDProducer("CandViewMerger", src = cms.VInputTag(          
+                                                                                          cms.InputTag("pfChargedPV"),
+                                                                                          cms.InputTag("neutralInJets", "neutralPassingPUIDJets"),
+                                                                                          cms.InputTag("neutralInJets", "neutralFailingPUIDJets"),
+                                                                                          cms.InputTag("neutralInJets", "neutralParticlesUnclustered")
+    ))
+    process.ak4JetsForpfMET.src = cms.InputTag("pfChs")
 
     ### MVA MET
     process.MVAMET = cms.EDProducer("MVAMET",                                                

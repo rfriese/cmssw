@@ -13,16 +13,16 @@ options.parseArguments()
 
 process = cms.Process("MVAMET")
 
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 
-
-if (options.localSqlite != ''):
+if (options.localSqlite == ''):
+    process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
+    process.GlobalTag.globaltag = options.globalTag
+else:
     from RecoMET.METPUSubtraction.localSqlite import loadLocalSqlite
     loadLocalSqlite(process, options.localSqlite) 
 
-process.GlobalTag.globaltag = options.globalTag
 # configure MVA MET
 runMVAMET( process)
 
@@ -42,7 +42,8 @@ process.maxEvents = cms.untracked.PSet(
 ) 
 
 if options.saveMapForTraining:
-    process.p = cms.Path()
+    if not hasattr(process, "p"):
+        process.p = cms.Path()
     process.load('CommonTools.UtilAlgos.TFileService_cfi')
     process.TFileService.fileName = cms.string('output.root')
     process.TFileService.closeFileFast = cms.untracked.bool(True)

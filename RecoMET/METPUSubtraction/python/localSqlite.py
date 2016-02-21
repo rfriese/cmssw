@@ -11,10 +11,24 @@ def loadLocalSqlite(process, sqliteFilename, tag = 'JetCorrectorParametersCollec
           cms.PSet(
                 record = cms.string('JetCorrectionsRecord'),
                 tag    = cms.string(tag),
-                label  = cms.untracked.string('AK4PFCHS')
+                label  = cms.untracked.string('AK4PFchs')
                 ),
           ), 
           connect = cms.string('sqlite:' + sqliteFilename)
     )
     ## add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
     process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+    ## https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#CorrPatJets
+    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
+    process.patJetCorrFactorsReapplyJEC = patJetCorrFactorsUpdated.clone(
+    src = cms.InputTag("slimmedJets"),
+      levels = ['L1FastJet', 'L2Relative', 'L3Absolute'],
+      payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
+  
+    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated
+    process.patJetsReapplyJEC = patJetsUpdated.clone(
+      jetSource = cms.InputTag("slimmedJets"),
+      jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
+      )
+    process.p = cms.Path() 
+    process.p += cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )

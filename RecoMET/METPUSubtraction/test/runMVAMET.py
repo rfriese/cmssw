@@ -64,7 +64,7 @@ else:
     process.output = cms.OutputModule("PoolOutputModule",
                                       fileName = cms.untracked.string('output_particles.root'),
                                       outputCommands = cms.untracked.vstring(
-                                                                             'keep *_*_*_MVAMET'
+                                                                             'keep patMETs_MVAMET_MVAMET_MVAMET'
                                                                              ),        
                                       SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring('p'))
                                       )

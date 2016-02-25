@@ -19,12 +19,14 @@ process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 if (options.localSqlite == ''):
     process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
     process.GlobalTag.globaltag = options.globalTag
+    jetCollection = "slimmedJets"
 else:
     from RecoMET.METPUSubtraction.localSqlite import loadLocalSqlite
     loadLocalSqlite(process, options.localSqlite) 
+    jetCollection = "patJetsReapplyJEC"
 
 # configure MVA MET
-runMVAMET( process)
+runMVAMET( process, jetCollectionPF = jetCollection)
 
 ## set input files
 process.source = cms.Source("PoolSource")
@@ -64,7 +66,8 @@ else:
     process.output = cms.OutputModule("PoolOutputModule",
                                       fileName = cms.untracked.string('output_particles.root'),
                                       outputCommands = cms.untracked.vstring(
-                                                                             'keep patMETs_MVAMET_MVAMET_MVAMET'
+                                                                             'keep patMETs_MVAMET_MVAMET_MVAMET',
+                                                                             'keep *_patJetsReapplyJEC_*_MVAMET'
                                                                              ),        
                                       SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring('p'))
                                       )

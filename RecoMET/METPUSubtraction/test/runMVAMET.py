@@ -5,7 +5,7 @@ from PhysicsTools.PatAlgos.tools.tauTools import *
 from RecoMET.METPUSubtraction.MVAMETConfiguration_cff import runMVAMET
 
 options = VarParsing ('python')
-options.register ('globalTag',"76X_mcRun2_asymptotic_v12",VarParsing.multiplicity.singleton,VarParsing.varType.string,'input global tag to be used');
+options.register ('globalTag',"76X_mcRun2_asymptotic_RunIIFall15DR76_v1",VarParsing.multiplicity.singleton,VarParsing.varType.string,'input global tag to be used');
 options.register ('saveMapForTraining',  False,VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'save internal map from MVAMET to perform own training');
 options.register ('inputFile', 'root://xrootd.unl.edu//store/mc/RunIIFall15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/70000/0232D37A-77BA-E511-B3C5-0CC47A4C8EA8.root', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a testfile")
 options.register ("localSqlite", '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a local sqlite file")

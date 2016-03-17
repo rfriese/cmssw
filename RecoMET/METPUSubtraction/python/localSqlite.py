@@ -22,18 +22,26 @@ def loadLocalSqlite(process, sqliteFilename, tag = 'JetCorrectorParametersCollec
 
 def recorrectJets(process, isData = False):
     ## https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#CorrPatJets
-    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
-    process.patJetCorrFactorsReapplyJEC = patJetCorrFactorsUpdated.clone(
+    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
+    process.patJetCorrFactorsReapplyJEC = updatedPatJetCorrFactors.clone(
     src = cms.InputTag("slimmedJets"),
       levels = ['L1FastJet', 'L2Relative', 'L3Absolute'],
       payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
-    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated
-    process.patJetsReapplyJEC = patJetsUpdated.clone(
+    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets
+    process.patJetsReapplyJEC = updatedPatJets.clone(
       jetSource = cms.InputTag("slimmedJets"),
       jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
       )
     if(isData):
         process.patJetCorrFactorsReapplyJEC.levels = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
-    if( not hasattr(process, "p")):
-        process.p = cms.Path() 
-    process.p += cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
+#    if( not hasattr(process, "p")):
+#        process.p = cms.Path() 
+#    process.p += cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
+
+def reapplyPUJetID(process, srcJets = cms.InputTag("slimmedJets")):
+    from RecoJets.JetProducers.PileupJetID_cfi import pileupJetId
+    process.pileupJetIdUpdated = pileupJetId.clone(
+        jets = srcJets,
+        inputIsCorrected = True,
+        applyJec = True,
+        vertexes = cms.InputTag("offlineSlimmedPrimaryVertices") ) 

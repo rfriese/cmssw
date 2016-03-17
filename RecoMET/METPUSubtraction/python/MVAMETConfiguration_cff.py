@@ -110,7 +110,6 @@ def runMVAMET(process,
                          dRCleaning = dRCleaning)
 
 
-
     #### Input definitions like in classic MVA MET
     #### tracks from PV
     process.pfCHS = cms.EDFilter("CandPtrSelector",
@@ -137,7 +136,7 @@ def runMVAMET(process,
                                            srcCandidates = cms.InputTag("pfNeutrals"),
                                            neutralParticlesPVJetsLabel = cms.string("neutralPassingPUIDJets"),
                                            neutralParticlesPUJetsLabel = cms.string("neutralFailingPUIDJets"),
-                                           neutralParticlesUnclustered = cms.string("neutralParticlesUnclustered"),
+                                           neutralParticlesUnclusteredLabel = cms.string("neutralParticlesUnclustered"),
                                            jetPUDIWP = cms.string("user"),
                                            jetPUIDMapLabel = cms.string("fullDiscriminant"))
   

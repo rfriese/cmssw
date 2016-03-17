@@ -47,7 +47,7 @@ class neutralCandidatePUIDJets : public edm::stream::EDProducer<> {
   static std::string   jetPUIDNameLabel_ ;
   static bool stringInJetCollection_ ;
 
-  float jetPUIDCut_ [3][3];
+  float jetPUIDCut_ [4][3];
 
 };
 #endif
@@ -57,55 +57,28 @@ std::string neutralCandidatePUIDJets::jetPUIDNameLabel_ = "";
 
 neutralCandidatePUIDJets::neutralCandidatePUIDJets(const edm::ParameterSet& iConfig){
 
-  // user defined jetPUIDCut cut
-  jetPUIDCut_[0][0] = -0.2; jetPUIDCut_[0][1] = -0.3; jetPUIDCut_[0][2] = -0.5; jetPUIDCut_[0][3] = -0.5;
-  jetPUIDCut_[1][0] = -0.2; jetPUIDCut_[1][1] = -0.2; jetPUIDCut_[1][2] = -0.5; jetPUIDCut_[1][3] = -0.3;
-  jetPUIDCut_[2][0] = -0.2; jetPUIDCut_[2][1] = -0.2; jetPUIDCut_[2][2] = -0.2; jetPUIDCut_[2][3] =  0.1;
-  jetPUIDCut_[3][0] = -0.2; jetPUIDCut_[3][1] = -0.2; jetPUIDCut_[3][2] =  0. ; jetPUIDCut_[3][3] =  0.2; 
-  
+  // new PU Jet ID cuts medium
+  // https://indico.cern.ch/event/502737/contribution/3/attachments/1234291/1816811/PileupJetID_76X.pdf
+  jetPUIDCut_[0][0] = -0.61; jetPUIDCut_[0][1] = -0.52; jetPUIDCut_[0][2] = -0.40; jetPUIDCut_[0][3] = -0.36;
+  jetPUIDCut_[1][0] = -0.61; jetPUIDCut_[1][1] = -0.52; jetPUIDCut_[1][2] = -0.40; jetPUIDCut_[1][3] = -0.36;
+  jetPUIDCut_[2][0] = -0.61; jetPUIDCut_[2][1] = -0.52; jetPUIDCut_[2][2] = -0.40; jetPUIDCut_[2][3] = -0.36;
+  jetPUIDCut_[3][0] = -0.20; jetPUIDCut_[3][1] = -0.37; jetPUIDCut_[3][2] = -0.22; jetPUIDCut_[3][3] = -0.17;
+  jetPUIDCut_[4][0] = -0.20; jetPUIDCut_[4][1] = -0.37; jetPUIDCut_[4][2] = -0.22; jetPUIDCut_[4][3] = -0.17;
+   
 
-  if(iConfig.existsAs<edm::InputTag >("srcJets"))
-    srcJets_ = iConfig.getParameter<edm::InputTag>("srcJets");
-  else
-    throw cms::Exception("Configuration")<<"[neutralCandidatePUIDJets] no jet collection given \n";
-
-  if(iConfig.existsAs<edm::InputTag >("srcCandidates"))
-    srcCandidates_ = iConfig.getParameter<edm::InputTag>("srcCandidates");
-  else
-    throw cms::Exception("Configuration")<<"[neutralCandidatePUIDJets] no PF candidate collection given \n";
-
-  if(!(srcJets_ == edm::InputTag("")))
-    srcJetsToken_ = consumes<pat::JetCollection>(srcJets_);
-
-  if(!(srcCandidates_ == edm::InputTag("")))
-    srcCandidatesToken_ = consumes<reco::CandidateView>(srcCandidates_);
-
-
-  if(iConfig.existsAs<std::string >("neutralParticlesPVJetsLabel"))
-    neutralParticlesPVJets_ = iConfig.getParameter<std::string>("neutralParticlesPVJetsLabel");
-  else
-    neutralParticlesPVJets_ = "neutralPassingPUIDJets";
-
-  if(iConfig.existsAs<std::string >("neutralParticlesPUJetsLabel"))
-    neutralParticlesPUJets_ = iConfig.getParameter<std::string>("neutralParticlesPUJetsLabel");
-  else
-    neutralParticlesPUJets_ = "neutralFailingPUIDJets";
-
-  if(iConfig.existsAs<std::string >("neutralParticlesUnclusteredLabel"))
-    neutralParticlesUnclustered_ = iConfig.getParameter<std::string>("neutralParticlesUnclusteredLabel");
-  else
-    neutralParticlesUnclustered_ = "neutralParticlesUnclustered";
-
+  srcJets_ = iConfig.getParameter<edm::InputTag>("srcJets");
+  srcCandidates_ = iConfig.getParameter<edm::InputTag>("srcCandidates");
+  srcJetsToken_ = consumes<pat::JetCollection>(srcJets_);
+  srcCandidatesToken_ = consumes<reco::CandidateView>(srcCandidates_);
+  neutralParticlesPVJets_ = iConfig.getParameter<std::string>("neutralParticlesPVJetsLabel");
+  neutralParticlesPUJets_ = iConfig.getParameter<std::string>("neutralParticlesPUJetsLabel");
+  neutralParticlesUnclustered_ = iConfig.getParameter<std::string>("neutralParticlesUnclusteredLabel");
   PUJets_ = "PUJets";
   PVJets_ = "PVJets";
 
-  if(iConfig.existsAs<std::string >("jetPUDIWP")){
-    jetPUIDWP_ = iConfig.getParameter<std::string>("jetPUDIWP");
-    if(jetPUIDWP_ != "tight" and jetPUIDWP_ != "medium" and jetPUIDWP_ != "loose" and jetPUIDWP_ != "user")
-      throw cms::Exception("Configuration") <<"  [neutralCandidatePUIDJets] wrong label for jetPUID working point ";
-  }
-  else
-    jetPUIDWP_ = "user";
+  jetPUIDWP_ = iConfig.getParameter<std::string>("jetPUDIWP");
+  if(jetPUIDWP_ != "tight" and jetPUIDWP_ != "medium" and jetPUIDWP_ != "loose" and jetPUIDWP_ != "user")
+    throw cms::Exception("Configuration") <<"  [neutralCandidatePUIDJets] wrong label for jetPUID working point ";
 
   if(jetPUIDWP_ == "tight")
     jetIdSelection_ = PileupJetIdentifier::kTight;
@@ -115,11 +88,7 @@ neutralCandidatePUIDJets::neutralCandidatePUIDJets(const edm::ParameterSet& iCon
     jetIdSelection_ = PileupJetIdentifier::kTight;
 
 
-  if(iConfig.existsAs<std::string>("jetPUIDMapLabel"))
-    jetPUIDMapLabel_ = iConfig.getParameter<std::string>("jetPUIDMapLabel");  
-  else
-    jetPUIDMapLabel_ = "fullDiscriminant";
-
+  jetPUIDMapLabel_ = iConfig.getParameter<std::string>("jetPUIDMapLabel");  
   
   produces<edm::PtrVector<reco::Candidate> >(neutralParticlesPVJets_);
   produces<edm::PtrVector<reco::Candidate> >(neutralParticlesPUJets_);
@@ -190,7 +159,8 @@ void neutralCandidatePUIDJets::produce(edm::Event& iEvent, const edm::EventSetup
       int etaBin = 0;
       if ( jet.pt() >= 10. && jet.pt() < 20. ) ptBin = 1;
       if ( jet.pt() >= 20. && jet.pt() < 30. ) ptBin = 2;
-      if ( jet.pt() >= 30.                     ) ptBin = 3;
+      if ( jet.pt() >= 30. && jet.pt() < 50. ) ptBin = 3;
+      if ( jet.pt() >= 50.                   ) ptBin = 4;
       if ( std::abs(jet.eta()) >= 2.5  && std::abs(jet.eta()) < 2.75) etaBin = 1; 
       if ( std::abs(jet.eta()) >= 2.75 && std::abs(jet.eta()) < 3.0 ) etaBin = 2; 
       if ( std::abs(jet.eta()) >= 3.0  && std::abs(jet.eta()) < 5.0 ) etaBin = 3; 

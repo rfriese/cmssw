@@ -10,6 +10,7 @@ options.register ('saveMapForTraining',  False,VarParsing.multiplicity.singleton
 options.register ('inputFile', 'root://xrootd.unl.edu//store/mc/RunIIFall15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/70000/0232D37A-77BA-E511-B3C5-0CC47A4C8EA8.root', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a testfile")
 options.register ("localSqlite", '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a local sqlite file")
 options.register ("reapplyJEC", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply JEC to Jets")
+options.register ("reapplyPUJetID", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply PU Jet ID")
 options.register ("isData", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Input is data")
 options.parseArguments()
 
@@ -26,12 +27,17 @@ else:
     from RecoMET.METPUSubtraction.localSqlite import loadLocalSqlite
     loadLocalSqlite(process, options.localSqlite) 
 
+if options.reapplyPUJetID:
+    from RecoMET.METPUSubtraction.localSqlite import reapplyPUJetID
+    reapplyPUJetID(process)
 
 if options.reapplyJEC:
     from RecoMET.METPUSubtraction.localSqlite import recorrectJets
     recorrectJets(process, options.isData)
     jetCollection = "patJetsReapplyJEC"
 
+if options.reapplyPUJetID:
+    getattr(process, jetCollection).userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 
 # configure MVA MET
 runMVAMET( process, jetCollectionPF = jetCollection)

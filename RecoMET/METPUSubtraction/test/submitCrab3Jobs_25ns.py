@@ -35,7 +35,11 @@ config.section_('JobType')
 config.JobType.psetName    = 'runMVAMET.py'
 config.JobType.pluginName  = 'Analysis'
 
-config.JobType.inputFiles = ['../data/weightfile.root']
+config.JobType.inputFiles = ['../data/weightfile.root',
+                             '../../RecoJets/JetProducers/data/pileupJetId_76x_Eta0to2p5_BDT.weights.xml.gz',
+                             '../../RecoJets/JetProducers/data/pileupJetId_76x_Eta2p5to2p75_BDT.weights.xml.gz',
+                             '../../RecoJets/JetProducers/data/pileupJetId_76x_Eta2p75to3_BDT.weights.xml.gz',
+                             '../../RecoJets/JetProducers/data/pileupJetId_76x_Eta3to5_BDT.weights.xml.gz' ]
 config.JobType.allowUndistributedCMSSW = True
 
 config.section_('Data')
@@ -48,8 +52,8 @@ config.Data.publication = False
 config.section_('User')
 config.section_('Site')
 config.Site.storageSite = 'T2_DE_DESY'
-config.Data.outLFNDirBase = '/store/user/rfriese/mvamet/skimming/2016-03-03/'
-config.General.workArea = '/nfs/dust/cms/user/rfriese/crab_mvamet_skim-2016-03-03'
+config.Data.outLFNDirBase = '/store/user/rfriese/mvamet/skimming/2016-03-17/'
+config.General.workArea = '/nfs/dust/cms/user/rfriese/crab_mvamet_skim-2016-03-17'
 config.JobType.pyCfgParams = ["saveMapForTraining=True"]
 
 for nick, sample in datasets.iteritems():

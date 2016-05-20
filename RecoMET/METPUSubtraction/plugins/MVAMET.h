@@ -16,6 +16,7 @@
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "CondFormats/EgammaObjects/interface/GBRForest.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
@@ -173,6 +174,7 @@ class MVAMET : public edm::stream::EDProducer<> {
   void TagZ();
 private:
   void doCombinations(int offset, int k);
+  void unpackPairs(edm::Event& evt);
   void saveMap(edm::Event& evt);
   void calculateRecoilingObjects(edm::Event& evt, const pat::MuonCollection&, const pat::TauCollection& );
   void cleanLeptonsFromSS()
@@ -220,6 +222,8 @@ private:
   size_t combineNLeptons_;
   bool requireOS_;
   edm::Handle<pat::METCollection> referenceMETHandle_;
+  bool skipCombinatorics_;
+  edm::EDGetTokenT<reco::CompositeCandidateCollection> leptonPairsHandle_;
   // to be removed
   const reco::GenMET * genMET_;
 }; 

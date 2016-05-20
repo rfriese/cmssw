@@ -45,7 +45,10 @@ MVAMET::MVAMET(const edm::ParameterSet& cfg){
   if(useTauSig_)
     srcTausSignificance_ = consumes<math::Error<2>::type>(cfg.getParameter<edm::InputTag>("tausSignificance"));
 
-
+  skipCombinatorics_ = (cfg.existsAs<bool>("skipCombinatorics")) ? cfg.getParameter<bool>("skipCombinatorics") : false;
+  if (skipCombinatorics_)
+    leptonPairsHandle_ = consumes<reco::CompositeCandidateCollection>(cfg.getParameter<edm::InputTag>("leptonPairs"));
+  
   // load weight files
   edm::FileInPath weightFile; 
   weightFile = cfg.getParameter<edm::FileInPath>("weightFile");
@@ -107,14 +110,29 @@ void MVAMET::doCombinations(int offset, int k)
   combination_.clear();
 }
 
+void MVAMET::unpackPairs(edm::Event& evt)
+{
+  edm::Handle<reco::CompositeCandidateCollection> pairs;
+  evt.getByToken(leptonPairsHandle_, pairs);
+  for (auto ipair = pairs->begin(); ipair != pairs->end(); ++ipair)
+  {
+    combination_.clear();
+    for (unsigned int ielem = 0; ielem < combineNLeptons_; ++ielem)
+    { 
+      const reco::Candidate& cand = *(ipair->daughter(ielem));
+      combination_.push_back(cand.masterClone().castTo<edm::Ptr<reco::Candidate> >());
+    }
+    combinations_.push_back(combination_);
+  }
+}
+
 void MVAMET::handleTaus(edm::Ptr<reco::Candidate> lepton, recoilingBoson& Z, const pat::TauCollection& tauCollection)
 {
   recoilComponent rComp(lepton);
   for(const auto & tau : tauCollection)
   {
-    if(lepton->p4() != tau.p4())
+    if(deltaR2 (*lepton, tau) > 1.e-6) // dR > 0.001
       continue;
-
     for(const auto & candidate : tau.signalCands())
     {
       if(abs(candidate->pdgId()) > 11 and abs(candidate->pdgId()) < 16)
@@ -165,7 +183,10 @@ void MVAMET::calculateRecoilingObjects(edm::Event &evt, const pat::MuonCollectio
       allLeptons_.push_back(leptons->ptrAt(i));
   }
 
-  if(allLeptons_.size() >= combineNLeptons_ )
+  if (skipCombinatorics_)
+    unpackPairs(evt);
+
+  else if(allLeptons_.size() >= combineNLeptons_)
     doCombinations(0, combineNLeptons_);
 
   if(debug_)
@@ -376,10 +397,13 @@ void MVAMET::produce(edm::Event& evt, const edm::EventSetup& es){
     else
       mvaMET.setSignificanceMatrix(mvaMETCov);
 
-    // add constituent info to pat::MET
-    size_t iCount=0;
-    for(const auto & lepton: Z.leptons)
-      mvaMET.addUserCand("lepton" + std::to_string(iCount++), lepton.getSrcLepton());
+    // add constituent info to pat::MET ; only if combinatorics done here (else potential problems with edm::Ptr cast)
+    if (!skipCombinatorics_)
+    {
+      size_t iCount=0;
+      for(const auto & lepton: Z.leptons)
+        mvaMET.addUserCand("lepton" + std::to_string(iCount++), lepton.getSrcLepton());
+    }
 
     // save MVA MET results
     mvaMET.addUserFloat("PhiCorrection", PhiAngle);
@@ -387,7 +411,7 @@ void MVAMET::produce(edm::Event& evt, const edm::EventSetup& es){
     mvaMET.addUserFloat("CovU1", CovU1Correction);
     mvaMET.addUserFloat("CovU2", CovU2Correction);
     patMETCollection->push_back(mvaMET);
-
+   
    // muon selection for training
     if(saveMap_)
     {

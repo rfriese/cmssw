@@ -153,7 +153,7 @@ void MVAMET::handleMuons(edm::Ptr<reco::Candidate> lepton, recoilingBoson& Z, co
   recoilComponent rComp(lepton); 
   for (const auto & muon : muCollection)
   {
-    if( muon.p4() == lepton->p4())
+    if(deltaR2 (*lepton, muon) < 1.e-6) // dR < 0.001
     {
       p4Photon.SetPt(muon.pfEcalEnergy()/TMath::CosH(muon.p4().eta()));
       p4Photon.SetEta(muon.p4().eta());

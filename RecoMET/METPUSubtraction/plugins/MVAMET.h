@@ -174,7 +174,7 @@ class MVAMET : public edm::stream::EDProducer<> {
   void TagZ();
 private:
   void doCombinations(int offset, int k);
-  void unpackPairs(edm::Event& evt);
+  void unpackCompositeCands(edm::Event& evt);
   void saveMap(edm::Event& evt);
   void calculateRecoilingObjects(edm::Event& evt, const pat::MuonCollection&, const pat::TauCollection& );
   void cleanLeptonsFromSS()
@@ -222,8 +222,8 @@ private:
   size_t combineNLeptons_;
   bool requireOS_;
   edm::Handle<pat::METCollection> referenceMETHandle_;
-  bool skipCombinatorics_;
-  edm::EDGetTokenT<reco::CompositeCandidateCollection> leptonPairsHandle_;
+  bool permuteLeptonsWithinPlugin_;
+  edm::EDGetTokenT<reco::CompositeCandidateCollection> leptonPermutationsHandle_;
   // to be removed
   const reco::GenMET * genMET_;
 }; 

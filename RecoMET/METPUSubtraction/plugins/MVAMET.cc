@@ -45,9 +45,9 @@ MVAMET::MVAMET(const edm::ParameterSet& cfg){
   if(useTauSig_)
     srcTausSignificance_ = consumes<math::Error<2>::type>(cfg.getParameter<edm::InputTag>("tausSignificance"));
 
-  skipCombinatorics_ = (cfg.existsAs<bool>("skipCombinatorics")) ? cfg.getParameter<bool>("skipCombinatorics") : false;
-  if (skipCombinatorics_)
-    leptonPairsHandle_ = consumes<reco::CompositeCandidateCollection>(cfg.getParameter<edm::InputTag>("leptonPairs"));
+  permuteLeptonsWithinPlugin_ = cfg.getParameter<bool>("permuteLeptonsWithinPlugin");
+  if (!permuteLeptonsWithinPlugin_)
+    leptonPermutationsHandle_ = consumes<reco::CompositeCandidateCollection>(cfg.getParameter<edm::InputTag>("leptonPermutations"));
   
   // load weight files
   edm::FileInPath weightFile; 
@@ -110,16 +110,16 @@ void MVAMET::doCombinations(int offset, int k)
   combination_.clear();
 }
 
-void MVAMET::unpackPairs(edm::Event& evt)
+void MVAMET::unpackCompositeCands(edm::Event& evt)
 {
-  edm::Handle<reco::CompositeCandidateCollection> pairs;
-  evt.getByToken(leptonPairsHandle_, pairs);
-  for (auto ipair = pairs->begin(); ipair != pairs->end(); ++ipair)
+  edm::Handle<reco::CompositeCandidateCollection> ccands;
+  evt.getByToken(leptonPermutationsHandle_, ccands);
+  for (auto ccand = ccands->begin(); ccand != ccands->end(); ++ccand)
   {
     combination_.clear();
     for (unsigned int ielem = 0; ielem < combineNLeptons_; ++ielem)
     { 
-      const reco::Candidate& cand = *(ipair->daughter(ielem));
+      const reco::Candidate& cand = *(ccand->daughter(ielem));
       combination_.push_back(cand.masterClone().castTo<edm::Ptr<reco::Candidate> >());
     }
     combinations_.push_back(combination_);
@@ -183,8 +183,8 @@ void MVAMET::calculateRecoilingObjects(edm::Event &evt, const pat::MuonCollectio
       allLeptons_.push_back(leptons->ptrAt(i));
   }
 
-  if (skipCombinatorics_)
-    unpackPairs(evt);
+  if (!permuteLeptonsWithinPlugin_)
+    unpackCompositeCands(evt);
 
   else if(allLeptons_.size() >= combineNLeptons_)
     doCombinations(0, combineNLeptons_);
@@ -398,7 +398,7 @@ void MVAMET::produce(edm::Event& evt, const edm::EventSetup& es){
       mvaMET.setSignificanceMatrix(mvaMETCov);
 
     // add constituent info to pat::MET ; only if combinatorics done here (else potential problems with edm::Ptr cast)
-    if (!skipCombinatorics_)
+    if (permuteLeptonsWithinPlugin_)
     {
       size_t iCount=0;
       for(const auto & lepton: Z.leptons)

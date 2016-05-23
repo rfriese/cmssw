@@ -243,5 +243,6 @@ def runMVAMET(process,
                                     srcLeptons  = cms.VInputTag(srcMuons+muonTypeID,srcElectrons+electronTypeID,srcTaus+tauTypeID+"Cleaned"), # to produce a selection specifically designed for trainings
                                     useTauSig = cms.bool(True),
                                     tausSignificance = cms.InputTag('tausSignificance', 'METCovariance'),
-                                    saveMap = cms.bool(saveMapForTraining)
+                                    saveMap = cms.bool(saveMapForTraining),
+                                    permuteLeptonsWithinPlugin = cms.bool(True)
                                     )

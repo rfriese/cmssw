@@ -1275,7 +1275,7 @@ class RunMETCorrectionsAndUncertainties(ConfigToolBase):
                 getattr(process, "patMETs"+postfix).computeMETSignificance = cms.bool(True)
                 if postfix=="NoHF":
                     getattr(process, "patMETs"+postfix).computeMETSignificance = cms.bool(False)
-                getattr(process, "patCaloMet").computeMETSignificance = cms.bool(False)
+                #getattr(process, "patCaloMet").computeMETSignificance = cms.bool(False)
                 if self._parameters["Puppi"].value:
                     getattr(process, 'patMETs'+postfix).srcPFCands = cms.InputTag('puppiForMET')
                     getattr(process, 'patMETs'+postfix).srcJets = cms.InputTag('selectedPatJets'+postfix)

@@ -8,8 +8,9 @@ options = VarParsing ('python')
 options.register ('globalTag',"80X_mcRun2_asymptotic_2016_miniAODv2_v1",VarParsing.multiplicity.singleton,VarParsing.varType.string,'input global tag to be used');
 options.register ('inputFile', 'file:////pnfs/desy.de/cms/tier2/store/mc/RunIISpring16MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/40000/00E9D1DA-105D-E611-A56E-FA163EE988CA.root', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a testfile")
 options.register ("localSqlite", '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a local sqlite file")
-options.register ("reapplyJEC", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply JEC to Jets")
-options.register ("reapplyPUJetID", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply PU Jet ID")
+options.register ("reapplyJEC", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply JEC to Jets")
+options.register ("reapplyPUJetID", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply PU Jet ID")
+options.register ("recomputeMET", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Recomute MET instead of taking it from MiniAOD")
 options.register ("isData", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Input is data")
 options.parseArguments()
 
@@ -35,6 +36,22 @@ if options.reapplyJEC:
     recorrectJets(process, options.isData)
     jetCollection = "patJetsReapplyJEC"
 
+if options.recomputeMET:
+	from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+	runMetCorAndUncFromMiniAOD(process, isData=options.isData, jetCollUnskimmed=jetCollection  )
+
+	from PhysicsTools.PatAlgos.slimming.puppiForMET_cff import makePuppiesFromMiniAOD
+	makePuppiesFromMiniAOD( process );
+	runMetCorAndUncFromMiniAOD(process,
+                             isData=options.isData,
+                             metType="Puppi",
+                             pfCandColl=cms.InputTag("puppiForMET"),
+                             recoMetFromPFCs=True,
+                             reclusterJets=True,
+                             jetFlavor="AK4PFPuppi",
+                             postfix="Puppi")
+
+
 if options.reapplyPUJetID:
     getattr(process, jetCollection).userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 
@@ -59,7 +76,9 @@ process.maxEvents = cms.untracked.PSet(
 process.output = cms.OutputModule("PoolOutputModule",
                                   fileName = cms.untracked.string('output.root'),
                                   outputCommands = cms.untracked.vstring(
-                                                                         'keep patMETs_MVAMET_MVAMET_MVAMET',
+                                                                         'keep patMETs_slimmedMETs_*_MVAMET',
+                                                                         'keep patMETs_slimmedMETsPuppi_*_MVAMET',
+                                                                         'keep patMETs_MVAMET_*_MVAMET',
                                                                          'keep *_patJetsReapplyJEC_*_MVAMET'
                                                                          ),        
                                   SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring('p'))

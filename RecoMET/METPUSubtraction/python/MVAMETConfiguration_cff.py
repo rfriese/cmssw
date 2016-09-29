@@ -10,8 +10,6 @@ from RecoMET.METPUSubtraction.LeptonSelectionTools_cff import applyElectronID
 from RecoMET.METPUSubtraction.LeptonSelectionTools_cff import applyTauID
 from RecoMET.METPUSubtraction.LeptonSelectionTools_cff import cleanJetsFromLeptons
 from RecoMET.METProducers.PFMET_cfi import pfMet
-from JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff import corrPfMetType1
-from JetMETCorrections.Type1MET.correctedMet_cff import pfMetT1
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import switchOnVIDElectronIdProducer, switchOnVIDPhotonIdProducer, DataFormat, setupAllVIDIdsInModule, setupVIDElectronSelection, setupVIDPhotonSelection
 
 def runMVAMET(process,
@@ -190,17 +188,11 @@ def runMVAMET(process,
     process.ak4PFCHSL1FastjetCorrector = ak4PFCHSL1FastjetCorrector 
 
 
-    for met in ["pfMET", "pfTrackMET", "pfNoPUMET", "pfPUCorrectedMET", "pfPUMET", "pfChargedPUMET", "pfNeutralPUMET", "pfNeutralPVMET", "pfNeutralUnclusteredMET"]:
+    for met in ["pfTrackMET", "pfNoPUMET", "pfPUCorrectedMET", "pfPUMET"]:
         # create PF METs
         setattr(process, met, pfMet.clone(src = cms.InputTag(met+"Cands"), alias = cms.string(met)))
-        # create Jets
-        setattr(process, "ak4JetsFor"+met, ak4PFJets.clone(src = cms.InputTag(met+"Cands")))
-        setattr(process, "corr"+met, corrPfMetType1.clone(src = cms.InputTag("ak4JetsFor"+met)))
-        # derive corrections and apply them
-        setattr(process, met+"T1", pfMetT1.clone( src= cms.InputTag(met), srcCorrections=cms.VInputTag(cms.InputTag("corr"+met, "type1"))))
         # convert METs to pat objects
         setattr(process, "pat"+met,      patMETsForMVA.clone(metSource = cms.InputTag(met)))
-        setattr(process, "pat"+met+"T1", patMETsForMVA.clone(metSource = cms.InputTag(met+"T1")))
 
     process.pfChs = cms.EDProducer("CandViewMerger", src = cms.VInputTag(          
                                                                                           cms.InputTag("pfChargedPV"),
@@ -208,7 +200,6 @@ def runMVAMET(process,
                                                                                           cms.InputTag("neutralInJets", "neutralFailingPUIDJets"),
                                                                                           cms.InputTag("neutralInJets", "neutralParticlesUnclustered")
     ))
-    process.ak4JetsForpfMET.src = cms.InputTag("pfChs")
 
     ### MVA MET
     process.MVAMET = cms.EDProducer("MVAMET",                                                
@@ -218,24 +209,13 @@ def runMVAMET(process,
                                     MVAMETLabel = cms.string("MVAMET"),
                                     srcMETs      = cms.VInputTag(
                                                                  cms.InputTag("slimmedMETs"),
-                                                                 cms.InputTag("patpfMET"),
-                                                                 cms.InputTag("patpfMETT1"),
                                                                  cms.InputTag("patpfTrackMET"),
-                                                                 #cms.InputTag("patpfTrackMETT1"),
                                                                  cms.InputTag("patpfNoPUMET"),
-                                                                 #cms.InputTag("patpfNoPUMETT1"),
                                                                  cms.InputTag("patpfPUCorrectedMET"),
-                                                                 #cms.InputTag("patpfPUCorrectedMETT1"),
                                                                  cms.InputTag("patpfPUMET"),
-                                                                 #cms.InputTag("patpfPUMETT1"),
                                                                  cms.InputTag("slimmedMETsPuppi"),
-                                                                 #cms.InputTag("patpfChargedPUMET"),
-                                                                 #cms.InputTag("patpfNeutralPUMET"),
-                                                                 #cms.InputTag("patpfNeutralPVMET"),
-                                                                 #cms.InputTag("patpfNeutralUnclusteredMET")
                                                                 ),
-                                    #inputMETFlags = cms.vint32(0,0,0,1,1,0,0,0,0,3,3,0,3,3,2,3), # use this flags if all MET collections are used above
-                                    inputMETFlags = cms.vint32(0,0,0,1,0,0,3,0),
+                                    inputMETFlags = cms.vint32(0,1,0,0,3,0),
                                     srcJets        = cms.InputTag(jetCollectionPF+"Cleaned"),
                                     srcVertices    = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                     srcTaus        = cms.InputTag(srcTaus+tauTypeID+"Cleaned"),

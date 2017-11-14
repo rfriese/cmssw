@@ -127,5 +127,5 @@ class CmsswPreprocessor :
                 ret=os.system(runstring)
                 if ret != 0:
                      print "CMSRUN failed"
-                     exit(ret)
+                     sys.exit(ret)
 		return component

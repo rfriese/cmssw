@@ -40,16 +40,8 @@ def runMVAMET(process,
     
         for idMod in electronIdModules:
             setupAllVIDIdsInModule(process, idMod, setupVIDElectronSelection)
-    """
-    if not hasattr(process,"VersionedPhotonIdProducer"):
-        switchOnVIDPhotonIdProducer(process, DataFormat.MiniAOD)
-    
-        photonIdModules = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_PHYS14_PU20bx25_V2_cff']
-    
-        for idMod in photonIdModules:
-            setupAllVIDIdsInModule(process, idMod, setupVIDPhotonSelection)
-    """
      ## create the Path
+
     process.jmfw_analyzers = cms.Sequence()
     if( not hasattr(process, "p")):
         process.p = cms.Path()
@@ -140,17 +132,6 @@ def runMVAMET(process,
                                            jetPUDIWP = cms.string("user"),
                                            jetPUIDMapLabel = cms.string("fullDiscriminant"))
   
-
-    #### Merge collections to produce corresponding METs
-    """
-    process.pfMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(          
-                                                                                          cms.InputTag("pfChargedPV"),
-                                                                                          cms.InputTag("pfChargedPU"),
-                                                                                          cms.InputTag("neutralInJets", "neutralPassingPUIDJets"),
-                                                                                          cms.InputTag("neutralInJets", "neutralFailingPUIDJets"),
-                                                                                          cms.InputTag("neutralInJets", "neutralParticlesUnclustered")
-    ))
-    """
     #### Track MET
     process.pfTrackMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(cms.InputTag("pfChargedPV")))
     ## No-PU MET
@@ -163,13 +144,6 @@ def runMVAMET(process,
     ## PU MET
     process.pfPUMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(          cms.InputTag("pfChargedPU"),
                                                                                           cms.InputTag("neutralInJets", "neutralFailingPUIDJets")))
-    
-    ##Experimental
-    process.pfChargedPUMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(cms.InputTag("pfChargedPU")))
-    process.pfNeutralPUMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(cms.InputTag("neutralInJets", "neutralFailingPUIDJets")))
-    process.pfNeutralPVMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(cms.InputTag("neutralInJets", "neutralPassingPUIDJets")))
-    process.pfNeutralUnclusteredMETCands = cms.EDProducer("CandViewMerger", src = cms.VInputTag(cms.InputTag("neutralInJets", "neutralParticlesUnclustered")))
-
                                                           
     from PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi import patMETs
     patMETsForMVA = patMETs.clone()
@@ -178,18 +152,6 @@ def runMVAMET(process,
     patMETsForMVA.srcJets = cms.InputTag(jetCollectionPF)
 
     setattr(patMETsForMVA,"srcLeptons", cms.VInputTag(srcMuons+muonTypeID,srcElectrons+electronTypeID,srcTaus+tauTypeID+"Cleaned"))
-
-    """
-    # get jets for T1 Correction
-    from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
-    from JetMETCorrections.Configuration.JetCorrectors_cff import ak4PFCHSL1FastL2L3Corrector,ak4PFCHSL3AbsoluteCorrector,ak4PFCHSL2RelativeCorrector,ak4PFCHSL1FastjetCorrector, ak4PFCHSL1FastL2L3ResidualCorrector, ak4PFCHSResidualCorrector
-    process.ak4PFCHSL1FastL2L3Corrector = ak4PFCHSL1FastL2L3Corrector
-    process.ak4PFCHSL1FastL2L3ResidualCorrector = ak4PFCHSL1FastL2L3ResidualCorrector
-    process.ak4PFCHSResidualCorrector = ak4PFCHSResidualCorrector
-    process.ak4PFCHSL3AbsoluteCorrector = ak4PFCHSL3AbsoluteCorrector
-    process.ak4PFCHSL2RelativeCorrector = ak4PFCHSL2RelativeCorrector
-    process.ak4PFCHSL1FastjetCorrector = ak4PFCHSL1FastjetCorrector 
-    """
 
     for met in ["pfTrackMET", "pfNoPUMET", "pfPUCorrectedMET", "pfPUMET"]:
         # create PF METs
@@ -226,7 +188,7 @@ def runMVAMET(process,
                                     srcElectrons       = cms.InputTag(srcElectrons+electronTypeID),
                                     weightFile     = cms.FileInPath('RecoMET/METPUSubtraction/data/weightfile.root'),
                                     #srcLeptons  = cms.VInputTag("slimmedMuons", "slimmedElectrons", "slimmedTaus"), # to produce all possible combinations
-                                    srcLeptons  = cms.VInputTag(srcMuons+muonTypeID,srcElectrons+electronTypeID,srcTaus+tauTypeID+"Cleaned"), # to produce a selection specifically designed for trainings
+                                    srcLeptons  = cms.VInputTag(srcMuons+muonTypeID,srcElectrons+electronTypeID), # to produce a selection specifically designed for trainings
                                     useTauSig = cms.bool(True),
                                     tausSignificance = cms.InputTag('tausSignificance', 'METCovariance'),
                                     saveMap = cms.bool(saveMapForTraining),

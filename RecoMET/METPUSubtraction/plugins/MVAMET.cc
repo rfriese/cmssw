@@ -3,6 +3,10 @@
 #include "RecoMET/METPUSubtraction/plugins/MVAMET.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
+// todo: check ob genBosonPt/phi als genRecoil taugt, genRecoil muss met beinhalten
+// pf candidates in skim einbauen und mit mapproducer raus schreiben, evtl zusammen mit genRecoil
+// test auf Z->mumu, Z->tautau und VBFH->tautau
+
 MVAMET::MVAMET(const edm::ParameterSet& cfg){
   saveMap_ = cfg.getParameter<bool>("saveMap");
   if(saveMap_)

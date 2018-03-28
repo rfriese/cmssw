@@ -5,8 +5,8 @@ from PhysicsTools.PatAlgos.tools.tauTools import *
 from RecoMET.METPUSubtraction.MVAMETConfiguration_cff import runMVAMET
 
 options = VarParsing ('python')
-options.register ('globalTag',"80X_mcRun2_asymptotic_2016_miniAODv2_v1",VarParsing.multiplicity.singleton,VarParsing.varType.string,'input global tag to be used');
-options.register ('inputFile', 'file:/afs/cern.ch/work/m/mverzett/public/perRic/t3mMINIAODSIM/t3mu_MINIAODSIM_0.root', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a testfile")
+options.register ('globalTag',"92X_upgrade2017_realistic_v14",VarParsing.multiplicity.singleton,VarParsing.varType.string,'input global tag to be used');
+options.register ('inputFile', 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer17MiniAOD/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10_ext1-v2/10000/0A8639B4-1D94-E711-9C68-02163E0135C6.root', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a testfile")
 # options.register ('inputFile', 'file:////storage/jbod/nzaeh/00E9D1DA-105D-E611-A56E-FA163EE988CA.root', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a testfile")
 options.register ("localSqlite", '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "Path to a local sqlite file")
 options.register ("reapplyJEC", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "Reapply JEC to Jets")
@@ -22,20 +22,20 @@ process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 jetCollection = "slimmedJets"
 
 if (options.localSqlite == ''):
-    process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-    process.GlobalTag.globaltag = options.globalTag
+	process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
+	process.GlobalTag.globaltag = options.globalTag
 else:
-    from RecoMET.METPUSubtraction.jet_recorrections import loadLocalSqlite
-    loadLocalSqlite(process, options.localSqlite) 
+	from RecoMET.METPUSubtraction.jet_recorrections import loadLocalSqlite
+	loadLocalSqlite(process, options.localSqlite) 
 
 if options.reapplyPUJetID:
-    from RecoMET.METPUSubtraction.jet_recorrections import reapplyPUJetID
-    reapplyPUJetID(process)
+	from RecoMET.METPUSubtraction.jet_recorrections import reapplyPUJetID
+	reapplyPUJetID(process)
 
 if options.reapplyJEC:
-    from RecoMET.METPUSubtraction.jet_recorrections import recorrectJets
-    recorrectJets(process, options.isData)
-    jetCollection = "patJetsReapplyJEC"
+	from RecoMET.METPUSubtraction.jet_recorrections import recorrectJets
+	recorrectJets(process, options.isData)
+	jetCollection = "patJetsReapplyJEC"
 
 if options.recomputeMET:
 	from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
@@ -44,17 +44,17 @@ if options.recomputeMET:
 	from PhysicsTools.PatAlgos.slimming.puppiForMET_cff import makePuppiesFromMiniAOD
 	makePuppiesFromMiniAOD( process );
 	runMetCorAndUncFromMiniAOD(process,
-                             isData=options.isData,
-                             metType="Puppi",
-                             pfCandColl=cms.InputTag("puppiForMET"),
-                             recoMetFromPFCs=True,
-                             reclusterJets=True,
-                             jetFlavor="AK4PFPuppi",
-                             postfix="Puppi")
+							 isData=options.isData,
+							 metType="Puppi",
+							 pfCandColl=cms.InputTag("puppiForMET"),
+							 recoMetFromPFCs=True,
+							 reclusterJets=True,
+							 jetFlavor="AK4PFPuppi",
+							 postfix="Puppi")
 
 
 if options.reapplyPUJetID:
-    getattr(process, jetCollection).userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
+	getattr(process, jetCollection).userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 
 # configure MVA MET
 runMVAMET( process, jetCollectionPF = jetCollection, debug=True)
@@ -81,59 +81,59 @@ process.options   = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideUnscheduledExecution
 # dump the full cfg in 8026
 process.MVAMETtask = cms.Task(
-    process.egmGsfElectronIDTask,
-    process.slimmedMuonsTight,
-    process.slimmedElectronsTight,
-    process.slimmedTausLoose,
-    process.slimmedTausLooseCleaned,
-    process.tausSignificance,
-    process.tauMET,
-    process.tauPFMET,
-    process.allDecayProducts,
-    process.tauDecayProducts,
-    process.patpfTrackMET,
-    process.pfTrackMET,
-    process.pfTrackMETCands,
-    process.pfChargedPV,
-    process.patpfNoPUMET,
-    process.pfNoPUMET,
-    process.pfNoPUMETCands,
-    process.neutralInJets,
-    process.patJetsReapplyJEC,
-    process.patJetCorrFactorsReapplyJEC,
-    process.pileupJetIdUpdated,
-    process.pfNeutrals,
-    process.patpfPUCorrectedMET,
-    process.pfPUCorrectedMET,
-    process.pfPUCorrectedMETCands,
-    process.patpfPUMET,
-    process.pfPUMET,
-    process.pfPUMETCands,
-    process.pfChargedPU,
-    process.MVAMET
+	process.egmGsfElectronIDTask,
+	process.slimmedMuonsTight,
+	process.slimmedElectronsTight,
+	process.slimmedTausLoose,
+	process.slimmedTausLooseCleaned,
+	process.tausSignificance,
+	process.tauMET,
+	process.tauPFMET,
+	process.allDecayProducts,
+	process.tauDecayProducts,
+	process.patpfTrackMET,
+	process.pfTrackMET,
+	process.pfTrackMETCands,
+	process.pfChargedPV,
+	process.patpfNoPUMET,
+	process.pfNoPUMET,
+	process.pfNoPUMETCands,
+	process.neutralInJets,
+	process.patJetsReapplyJEC,
+	process.patJetCorrFactorsReapplyJEC,
+	process.pileupJetIdUpdated,
+	process.pfNeutrals,
+	process.patpfPUCorrectedMET,
+	process.pfPUCorrectedMET,
+	process.pfPUCorrectedMETCands,
+	process.patpfPUMET,
+	process.pfPUMET,
+	process.pfPUMETCands,
+	process.pfChargedPU,
+	process.MVAMET
 )
 
 process.p = cms.Path(
-    process.MVAMETtask
+	process.MVAMETtask
 )
 ##########################################################################################
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(options.maxEvents)
+	input = cms.untracked.int32(options.maxEvents)
 ) 
 
 
 process.output = cms.OutputModule("PoolOutputModule",
-                                  fileName = cms.untracked.string('output.root'),
-                                  outputCommands = cms.untracked.vstring(
-                                                                         'keep patMETs_slimmedMETs_*_MVAMET',
-                                                                         'keep patMETs_slimmedMETsPuppi_*_MVAMET',
-                                                                         'keep patMETs_MVAMET_*_MVAMET',
-                                                                         'keep *_patJetsReapplyJEC_*_MVAMET',
-                                                                         'keep *',
-                                                                         ),        
-                                  SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring('p'))
+								  fileName = cms.untracked.string('output.root'),
+								  outputCommands = cms.untracked.vstring(
+																		 'keep patMETs_slimmedMETs_*_MVAMET',
+																		 'keep patMETs_slimmedMETsPuppi_*_MVAMET',
+																		 'keep patMETs_MVAMET_*_MVAMET',
+																		 'keep *_patJetsReapplyJEC_*_MVAMET',
+																		 'keep *',
+																		 ),        
+								  SelectEvents = cms.untracked.PSet(  SelectEvents = cms.vstring('p'))
  
-                                 )
+								 )
 
 process.out = cms.EndPath(process.output)
